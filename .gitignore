@@ -1,0 +1,41 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Generated outputs
+relatorio_faturamento_*.xlsx
+logs/
+*.log
+
+# Renamed PDFs (output do pipeline — não versionar)
+data/laudos/renamed/
+data/laudos/*-COB*.pdf
+
+# Zip / arquivos compactados
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Claude
+.claude/
+
+# Dados e arquivos do desafio
+data/
+junior-automation-dev-assignment-main/
