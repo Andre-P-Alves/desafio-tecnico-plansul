@@ -72,10 +72,18 @@ def enviar(caminho_relatorio: str, resumo: dict) -> None:
 
 if __name__ == "__main__":
     import logging
+    import sys
+
+    import pandas as pd
+
+    sys.path.insert(0, str(Path(__file__).parent))
+    from consolidar_cobrancas import consolidar
+    from renomear_laudos import renomear
 
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
     _BASE = Path(__file__).parent.parent
+    _DATA_DIR = _BASE / "data"
 
     # Usa o relatório mais recente gerado na raiz do projeto
     _relatorios = sorted(_BASE.glob("relatorio_faturamento_*.xlsx"), reverse=True)
@@ -83,15 +91,26 @@ if __name__ == "__main__":
         print("Nenhum relatório encontrado. Execute gerar_relatorio.py primeiro.")
         raise SystemExit(1)
 
+    # Reconstrói o resumo a partir dos dados reais
+    _df, _alertas = consolidar(
+        str(_DATA_DIR / "cobrancas_convenio.csv"),
+        str(_DATA_DIR / "cobrancas_internas.xlsx"),
+    )
+    _res_laudos = renomear(_df, str(_DATA_DIR / "laudos"), str(_DATA_DIR / "laudos_renomeados"))
+
+    _mes_ref = ""
+    if not _df.empty and _df["dt_realizacao"].notna().any():
+        _mes_ref = pd.Timestamp(_df["dt_realizacao"].dropna().iloc[0]).strftime("%m/%Y")
+
     _resumo = {
-        "mes_ref": _relatorios[0].stem.split("_")[-1],
-        "total_cobrancas": 0,
-        "total_divergencias": 0,
-        "vl_liquido_total": 0.0,
-        "vl_glosa_total": 0.0,
-        "pdfs_renomeados": 0,
-        "pdfs_total": 0,
-        "alertas": [],
+        "mes_ref": _mes_ref,
+        "total_cobrancas": len(_df),
+        "total_divergencias": len(_alertas),
+        "vl_liquido_total": round(float(_df["vl_liquido"].sum()), 2),
+        "vl_glosa_total": round(float(_df["vl_glosa"].sum()), 2),
+        "pdfs_renomeados": sum(1 for r in _res_laudos if r["status"] == "renomeado"),
+        "pdfs_total": len(_res_laudos),
+        "alertas": _alertas[:20],
     }
     enviar(str(_relatorios[0]), _resumo)
     print("E-mail enviado com sucesso.")

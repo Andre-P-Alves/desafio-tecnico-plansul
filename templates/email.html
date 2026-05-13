@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 14px; color: #222; background: #f4f6f8; margin: 0; padding: 20px; }
+    .container { max-width: 680px; margin: auto; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .header { background: #1F4E79; color: #fff; padding: 24px 28px; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .header p { margin: 6px 0 0; font-size: 13px; opacity: .85; }
+    .body { padding: 24px 28px; }
+    .section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; color: #1F4E79; border-bottom: 2px solid #1F4E79; margin: 20px 0 10px; padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    th { background: #1F4E79; color: #fff; padding: 8px 12px; text-align: left; font-size: 13px; }
+    td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; font-size: 13px; }
+    tr:nth-child(even) td { background: #f0f6ff; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+    .badge-warn { background: #FFD700; color: #333; }
+    .badge-ok { background: #4CAF50; color: #fff; }
+    .badge-info { background: #2196F3; color: #fff; }
+    .alert-row td:first-child { border-left: 3px solid #e65c00; }
+    .footer { background: #f4f6f8; padding: 14px 28px; font-size: 12px; color: #888; border-top: 1px solid #e0e0e0; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Relatório de Faturamento Hospitalar</h1>
+    <p>Referência: {{ mes_ref }} &nbsp;|&nbsp; Gerado automaticamente pelo pipeline de faturamento</p>
+  </div>
+
+  <div class="body">
+    <div class="section-title">Resumo de cobranças</div>
+    <table>
+      <tr><th>Indicador</th><th>Valor</th></tr>
+      <tr><td>Total de cobranças consolidadas</td><td><strong>{{ total_cobrancas }}</strong></td></tr>
+      <tr><td>Cobranças com divergência</td>
+          <td><span class="badge badge-warn">{{ total_divergencias }}</span></td></tr>
+      <tr><td>Valor líquido total (CSV)</td><td><strong>R$ {{ "%.2f"|format(vl_liquido_total) }}</strong></td></tr>
+      <tr><td>Total de glosas</td><td>R$ {{ "%.2f"|format(vl_glosa_total) }}</td></tr>
+    </table>
+
+    <div class="section-title">Laudos</div>
+    <table>
+      <tr><th>Indicador</th><th>Valor</th></tr>
+      <tr><td>PDFs processados</td><td>{{ pdfs_total }}</td></tr>
+      <tr><td>PDFs renomeados com sucesso</td>
+          <td><span class="badge badge-ok">{{ pdfs_renomeados }}</span></td></tr>
+      <tr><td>PDFs não vinculados / pulados</td>
+          <td>{{ pdfs_total - pdfs_renomeados }}</td></tr>
+    </table>
+
+    {% if alertas %}
+    <div class="section-title">Principais divergências ({{ alertas|length }} exibidas)</div>
+    <table>
+      <tr><th>ID Cobrança</th><th>Divergência</th></tr>
+      {% for a in alertas %}
+      <tr class="alert-row">
+        <td>{{ a.id_cobranca }}</td>
+        <td>{{ a.divergencias }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+  </div>
+
+  <div class="footer">
+    O relatório completo está disponível no arquivo Excel anexo a este e-mail.
+  </div>
+</div>
+</body>
+</html>
